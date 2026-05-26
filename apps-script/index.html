@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body { font-family: 'Malgun Gothic', sans-serif; padding: 15px; background-color: #f4f5f7; color: #333; margin: 0; }
+    .header { text-align: center; margin-bottom: 20px; padding-top: 10px; }
+    
+     
+    .selector-container { margin-bottom: 15px; }
+    #stop-selector { 
+      width: 100%; padding: 14px; border-radius: 10px; border: 2px solid #1a73e8;
+      font-size: 1.05rem; font-weight: bold; background-color: white; color: #1a73e8;
+      cursor: pointer; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .last-update { font-size: 0.85rem; color: #666; margin-bottom: 15px; text-align: center; }
+    .card { background: white; border-radius: 12px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .stop-title { font-weight: bold; color: #333; font-size: 1.2rem; border-bottom: 2px solid #f0f2f5; padding-bottom: 10px; margin-bottom: 12px; display: block; }
+    
+    .bus-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed #e2e8f0; }
+    .bus-row:last-child { border-bottom: none; padding-bottom: 0; }
+    
+    .bus-info { display: flex; flex-direction: column; }
+    .bus-num { font-weight: 900; color: #d93025; font-size: 1.15rem; margin-bottom: 3px; }
+    .bus-dir { font-size: 0.85rem; color: #70757a; }
+    
+    .bus-arrival { text-align: right; }
+    .bus-time { font-weight: 900; color: #188038; font-size: 1.2rem; }
+    .bus-remain { font-size: 0.85rem; color: #70757a; }
+    
+    .loading-msg { text-align: center; padding: 30px 10px; color: #888; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h2 style="margin:0; color:#1a73e8;">ð ì¤ìê° ë²ì¤ ëì°© ì ë³´</h2>
+  </div>
+
+  <div class="selector-container">
+    <select id="stop-selector" onchange="changeStop()">
+      <option value="1851" data-name="ì´ë¸ìí°ì ìì (ì ë¬¸)">ð ì´ë¸ìí°ì ìì</option>
+      <option value="1852" data-name="ì´ë¸ìí°ì ìì (ê±´ë)">ð ì´ë¸ìí°ì ìì (ê±´ë)</option>
+      <option value="1847" data-name="ì¤í¥1ì°¨ (ì ë¬¸)">ð ì¤í¥1ì°¨</option>
+      <option value="1844" data-name="ì¤í¥1ì°¨ (ê±´ë)">ð ì¤í¥1ì°¨ (ê±´ë)</option>
+      <option value="2126" data-name="ì¤í¥2ì°¨ (ì ë¬¸)">ð ì¤í¥2ì°¨</option>
+      <option value="2127" data-name="ì¤í¥2ì°¨ (ê±´ë)">ð ì¤í¥2ì°¨ (ê±´ë)</option>
+    </select>
+  </div>
+
+  <div id="time-display" class="last-update">ìë°ì´í¸ ëê¸° ì¤...</div>
+  
+  <div id="output">
+    <div class="loading-msg">ì ë¥ì¥ì ë¶ë¬ì¤ë ì¤ìëë¤...</div>
+  </div>
+
+  <script>
+    function load() {
+      const selector = document.getElementById('stop-selector');
+      const stopId = selector.value;
+      
+      
+      const stopName = selector.options[selector.selectedIndex].getAttribute('data-name');
+      
+      if(!stopId) return;
+      
+      document.getElementById('time-display').innerText = "ð ì¤ìê° ì ë³´ ê°ì ¸ì¤ë ì¤...";
+      
+      
+      google.script.run.withSuccessHandler(render).getBusData(stopId, stopName);
+    }
+
+    function render(res) {
+      if (!res || res.error) {
+        document.getElementById('output').innerHTML = `<div class="card" style="color:red; text-align:center;">ì¤ë¥ê° ë°ìíìµëë¤.</div>`;
+        return;
+      }
+
+      let html = `<div class="card">
+                    <span class="stop-title">${res.stopName}</span>`;
+      
+      if (res.buses.length === 0) {
+        html += `<div class="loading-msg">íì¬ ëì°© ìì ì¸ ë²ì¤ê° ììµëë¤. í~ ð¨</div>`;
+      } else {
+        res.buses.forEach(bus => {
+          html += `
+            <div class="bus-row">
+              <div class="bus-info">
+                <span class="bus-num">${bus.LINE_NAME}</span>
+                <span class="bus-dir">${bus.DIR_END} ë°©í¥</span>
+              </div>
+              <div class="bus-arrival">
+                <div class="bus-time">${bus.REMAIN_MIN}ë¶</div>
+                <div class="bus-remain">${bus.REMAIN_STOP}ë²ì§¸ ì </div>
+              </div>
+            </div>`;
+        });
+      }
+      html += `</div>`;
+      document.getElementById('output').innerHTML = html;
+      
+      const now = new Date();
+      document.getElementById('time-display').innerText = 
+        "â° ìµê·¼ ê°±ì : " + now.getHours() + ":" + String(now.getMinutes()).padStart(2, '0') + " (1ë¶ë§ë¤ ìë ê°±ì )";
+    }
+
+    function changeStop() {
+      load(); 
+    }
+
+    window.onload = function() {
+      load(); 
+      setInterval(load, 60000); 
+    };
+  </script>
+</body>
+</html>

@@ -7,6 +7,9 @@ Google Apps Script로 호스팅되며, **나주시 버스정보(BIS) 오픈 API*
 
 **https://script.google.com/macros/s/AKfycby89srVE5OayesHyj4tmvRR3LsQyFIlTM2-RCruIV7cEBv-eMXHFR6h82p5x03oSSDb3A/exec**
 
+> 공유·Padlet·학생용은 위 주소만 사용하세요.  
+> `.../macros/u/1/s/...` 는 Google 계정 편집기용이라 Chrome에서 **404** 납니다.
+
 ## 주요 기능
 
 - 정류장 선택 (드롭다운 6곳)
